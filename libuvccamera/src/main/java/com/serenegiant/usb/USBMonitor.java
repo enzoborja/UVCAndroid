@@ -533,28 +533,25 @@ public final class USBMonitor {
     public void requestPermission(final UsbDevice device) {
         if (DEBUG) Log.v(TAG, "requestPermission:device=" + device.getDeviceName());
         synchronized (USBMonitor.class) {
-            if (isRegistered()) {
                 if (device != null) {
                     if (mUsbManager.hasPermission(device)) {
                         // call onConnect if app already has permission
                         processOpenDevice(device);
-                    } else {
+                    } else if (isRegistered()) {
                         try {
                             // if no usb permission, request permission
                             mUsbManager.requestPermission(device, mPermissionIntent);
                         } catch (final Exception e) {
-                            // With Android5.1.x of GALAXY, this action may throw exception:android.permission.sec.MDM_APP_MGMT
                             Log.w(TAG, e);
                             processCancel(device);
                         }
+                    } else {
+                        processCancel(device);
                     }
                 } else {
                     processCancel(device);
                 }
-            } else {
-                processCancel(device);
             }
-        }
     }
 
     /**
